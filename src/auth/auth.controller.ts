@@ -1,0 +1,20 @@
+import { Body, Controller, Post } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { ApiTags } from '@nestjs/swagger';
+import { CreateUserDto } from './dto/create-user-dto/create-user-dto';
+
+@ApiTags('auth')
+@Controller('auth')
+export class AuthController {
+  constructor(private authService: AuthService) {}
+
+  @Post('signup')
+  signup(@Body() userDto: CreateUserDto) {
+    return this.authService.signup(userDto);
+  }
+
+  @Post('login')
+  login(@Body() userDto: CreateUserDto) {
+    return this.authService.login(userDto);
+  }
+}
