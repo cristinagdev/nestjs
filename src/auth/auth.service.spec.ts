@@ -1,15 +1,27 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { User } from './entities/user.entity';
-import { hash } from 'bcrypt';
 
 describe('UsersService', () => {
   let service: AuthService;
-  const mockAuthService = {
-    signup: jest.fn(),
+  const mockAuthRepository = {
+    save: jest.fn().mockImplementation((dto) =>
+      Promise.resolve({
+        id: Date.now(),
+        ...dto,
+      }),
+    ),
     login: jest.fn(),
+    findOneBy: jest.fn().mockImplementation((username) => {
+      return {
+        id: Date.now(),
+        username,
+        password: '12345',
+      };
+    }),
   };
 
   beforeEach(async () => {
@@ -18,9 +30,10 @@ describe('UsersService', () => {
         AuthService,
         {
           provide: getRepositoryToken(User),
-          useValue: mockAuthService,
+          useValue: mockAuthRepository,
         },
         JwtService,
+        ConfigService,
       ],
     }).compile();
 
@@ -32,40 +45,40 @@ describe('UsersService', () => {
   });
 
   it('should save a user in the db ', async () => {
-    let newUser = {
+    const newUser = {
       username: 'Cristina',
       password: '12345',
     };
-    const hashedPassword = await hash(newUser.password, 8);
-    newUser = { ...newUser, password: hashedPassword };
-    jest
-      .spyOn(service, 'signup')
-      .mockImplementation(() => Promise.resolve({ id: 1, ...newUser }));
 
     expect(await service.signup(newUser)).toEqual({
-      id: 1,
-      ...newUser,
+      id: expect.any(Number),
+      username: newUser.username,
     });
 
-    expect(service.signup).toHaveBeenCalled();
+    expect(mockAuthRepository.save).toHaveBeenCalled();
   });
 
   it('should login an user ', async () => {
-    const newUser: User = {
-      id: 1,
+    const newUser = {
       username: 'Cristina',
       password: '12345',
     };
-
-    jest
-      .spyOn(service, 'login')
-      .mockImplementation(() =>
-        Promise.resolve({ user: newUser, token: 'token' }),
-      );
-
+    jest.spyOn(service, 'login').mockImplementation((dto) =>
+      Promise.resolve({
+        user: {
+          username: dto.username,
+          id: Date.now(),
+        },
+        access_token: 'token',
+      }),
+    );
+    const userFound = {
+      id: Date.now(),
+      username: newUser.username,
+    };
     expect(await service.login(newUser)).toEqual({
-      user: newUser,
-      token: 'token',
+      user: userFound,
+      access_token: 'token',
     });
     expect(service.login).toHaveBeenCalled();
   });

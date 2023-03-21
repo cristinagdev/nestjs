@@ -10,11 +10,7 @@ describe('UsersController', () => {
 
   const usersListMock: User[] = [
     { id: 1, username: 'Cristina', password: '12342' },
-    {
-      id: 2,
-      username: 'Antonio',
-      password: '1234',
-    },
+    { id: 2, username: 'Antonio', password: '1234' },
   ];
 
   const mockUserService = {

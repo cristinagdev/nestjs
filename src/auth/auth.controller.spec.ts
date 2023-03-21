@@ -13,7 +13,7 @@ describe('AuthController', () => {
     }),
     login: jest.fn((dto) => {
       return {
-        id: 1,
+        id: Date.now(),
         ...dto,
       };
     }),
@@ -35,7 +35,7 @@ describe('AuthController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should create an user ', () => {
+  it('should create an user and signup', () => {
     const newUserDto = {
       username: 'Cristina',
       password: '12345',
@@ -54,9 +54,8 @@ describe('AuthController', () => {
       password: '12345',
     };
     expect(controller.login(userLogged)).toEqual({
-      id: 1,
-      username: 'Cristina',
-      password: '12345',
+      id: expect.any(Number),
+      ...userLogged,
     });
 
     expect(mockAuthService.login).toHaveBeenCalled();

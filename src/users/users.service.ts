@@ -10,6 +10,11 @@ export class UsersService {
   ) {}
 
   async getAll() {
-    return await this.usersRepository.find();
+    return await this.usersRepository.find({
+      select: {
+        id: true,
+        username: true,
+      },
+    });
   }
 }
